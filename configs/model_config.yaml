@@ -1,0 +1,58 @@
+# 模型配置文件
+model_configs:
+  chatglm3:
+    model_name: "THUDM/chatglm3-6b"
+    model_type: "chatglm"
+    max_length: 2048
+    trust_remote_code: true
+    torch_dtype: "auto"
+    
+  qwen:
+    model_name: "Qwen/Qwen-7B-Chat"
+    model_type: "qwen"
+    max_length: 8192
+    trust_remote_code: true
+    torch_dtype: "auto"
+    
+  baichuan2:
+    model_name: "baichuan-inc/Baichuan2-7B-Chat"
+    model_type: "baichuan"
+    max_length: 4096
+    trust_remote_code: true
+    torch_dtype: "auto"
+    
+  yi:
+    model_name: "01-ai/Yi-6B-Chat"
+    model_type: "yi"
+    max_length: 4096
+    trust_remote_code: true
+    torch_dtype: "auto"
+
+# LoRA配置
+lora_config:
+  r: 8                    # LoRA rank
+  lora_alpha: 32          # LoRA alpha
+  target_modules:         # 目标模块（根据模型调整）
+    chatglm3: ["query_key_value", "dense", "dense_h_to_4h", "dense_4h_to_h"]
+    qwen: ["c_attn", "c_proj", "w1", "w2"]
+    baichuan2: ["W_pack", "o_proj", "gate_proj", "up_proj", "down_proj"]
+    yi: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  lora_dropout: 0.1
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+# 量化配置
+quantization:
+  load_in_8bit: false
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "float16"
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+
+# 数据处理配置
+data_config:
+  max_seq_length: 512
+  train_split: 0.9
+  val_split: 0.1
+  shuffle: true
+  preprocessing_num_workers: 4
