@@ -1,0 +1,44 @@
+# Quick Test Configuration for 8GB GPU
+model:
+  name: "THUDM/chatglm3-6b"
+  trust_remote_code: true
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+  load_in_8bit: true  # Enable 8-bit quantization for 8GB GPU
+
+lora:
+  r: 8  # Reduced rank for smaller memory footprint
+  lora_alpha: 16
+  target_modules: 
+    - "query_key_value"
+    - "dense"
+  lora_dropout: 0.1
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+training:
+  output_dir: "./results/quick_test"
+  num_train_epochs: 1
+  per_device_train_batch_size: 1  # Small batch size for 8GB GPU
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 8  # Larger accumulation steps
+  learning_rate: 2e-4
+  warmup_steps: 50
+  logging_steps: 5
+  save_steps: 100
+  eval_steps: 100
+  max_seq_length: 256  # Shorter sequences for memory efficiency
+  dataloader_num_workers: 0
+  remove_unused_columns: false
+  
+optimizer:
+  name: "adamw_torch"
+  weight_decay: 0.01
+  
+scheduler:
+  name: "cosine"
+  
+data:
+  dataset_name: "BelleGroup/train_0.5M_CN"
+  validation_split: 0.1
+  max_samples: 1000  # Very small dataset for quick test
