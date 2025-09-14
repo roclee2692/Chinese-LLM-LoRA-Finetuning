@@ -1,0 +1,42 @@
+# 轻量级LoRA训练配置 - 使用distilgpt2快速验证流程
+model:
+  model_name: "distilgpt2"
+  model_type: "gpt2"
+  trust_remote_code: true
+  cache_dir: "./cache"
+
+lora:
+  r: 16
+  lora_alpha: 32
+  target_modules: ["c_attn", "c_proj"]
+  lora_dropout: 0.1
+  bias: "none"
+
+training:
+  output_dir: "./results/distilgpt2-lora-test"
+  num_train_epochs: 2  # 快速测试只需2个epoch
+  per_device_train_batch_size: 2  # 轻量级模型可以用更大batch
+  per_device_eval_batch_size: 2
+  gradient_accumulation_steps: 2
+  learning_rate: 0.0005  # 稍高的学习率
+  warmup_ratio: 0.1
+  logging_steps: 2  # 频繁记录
+  save_steps: 10
+  eval_steps: 5
+  bf16: true
+  fp16: false
+  dataloader_num_workers: 0
+  remove_unused_columns: false
+  report_to: []
+  seed: 42
+  data_seed: 42
+  save_total_limit: 2
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+
+data:
+  dataset_name: "custom"
+  train_file: "./data/processed/train_belle.jsonl"
+  validation_file: "./data/processed/val_belle.jsonl"
+  max_seq_length: 256  # 较短序列

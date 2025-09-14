@@ -1,0 +1,51 @@
+# 生产级LoRA训练配置 - 为8GB GPU优化
+model:
+  model_name: "THUDM/chatglm3-6b"
+  model_type: "chatglm3"
+  trust_remote_code: true
+  cache_dir: "./cache"
+
+lora:
+  r: 16  # LoRA rank，平衡性能和质量
+  lora_alpha: 32  # 2 * r 的常见设置
+  target_modules: ["query_key_value", "dense", "dense_h_to_4h", "dense_4h_to_h"]
+  lora_dropout: 0.1
+  bias: "none"
+
+quantization:
+  load_in_4bit: true  # 4bit量化节省显存
+
+training:
+  output_dir: "./results/chatglm3-lora-belle"
+  num_train_epochs: 3  # 3个epoch通常足够
+  per_device_train_batch_size: 1  # 小batch size适合8GB显存
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 8  # 累积梯度模拟更大batch
+  learning_rate: 2e-4  # LoRA常用学习率
+  warmup_ratio: 0.1
+  logging_steps: 5  # 频繁记录进度
+  save_steps: 20  # 频繁保存检查点
+  eval_steps: 10  # 频繁评估
+  bf16: true  # 使用bfloat16节省显存
+  fp16: false
+  dataloader_num_workers: 0  # Windows上设为0避免问题
+  remove_unused_columns: false
+  report_to: ["tensorboard"]  # 使用tensorboard记录
+  seed: 42
+  data_seed: 42
+  save_total_limit: 3  # 只保留最近3个检查点
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+
+data:
+  dataset_name: "custom"
+  train_file: "./data/processed/train_belle.jsonl"
+  validation_file: "./data/processed/val_belle.jsonl"
+  max_seq_length: 512
+
+wandb:
+  project: "chinese-llm-lora-finetuning"
+  name: "chatglm3-belle-experiment"
+  tags: ["chatglm3", "lora", "belle", "chinese"]
+  notes: "ChatGLM3-6B + LoRA fine-tuning on Belle dataset"

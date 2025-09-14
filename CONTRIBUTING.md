@@ -1,33 +1,36 @@
-# Contributing to Chinese-LLM-LoRA-Finetuning
+# 🤝 贡献指南
 
-感谢您对本项目的兴趣！我们欢迎各种形式的贡献。
+感谢您对 Chinese-LLM-LoRA-Finetuning 项目的关注！我们欢迎所有形式的贡献，无论是代码、文档、问题反馈还是功能建议。
 
-## 🤝 如何贡献
+## 📋 贡献方式
 
-### 报告问题 (Bug Reports)
-如果您发现了bug，请创建一个issue并包含以下信息：
-- 问题的详细描述
-- 复现步骤
-- 期望的行为
-- 实际的行为
-- 环境信息（Python版本、操作系统等）
+### 🐛 报告问题
+- 使用 GitHub Issues 报告 bug
+- 提供详细的复现步骤
+- 包含错误信息和环境信息
 
-### 功能请求 (Feature Requests)
-如果您有新功能的想法，请创建一个issue并描述：
-- 功能的详细描述
-- 使用场景
-- 为什么这个功能对项目有价值
+### 💡 提出建议
+- 在 Issues 中标记为 `enhancement`
+- 详细描述功能需求和使用场景
+- 讨论实现方案的可行性
 
-### 代码贡献 (Code Contributions)
+### 📝 改进文档
+- 修正文档中的错误
+- 添加使用示例和教程
+- 翻译文档到其他语言
 
-1. **Fork 项目**
-   ```bash
-   git clone https://github.com/roclee2692/Chinese-LLM-LoRA-Finetuning.git
-   cd Chinese-LLM-LoRA-Finetuning
-   ```
+### 💻 贡献代码
+- 修复已知 bug
+- 实现新功能
+- 优化性能和代码质量
 
-2. **创建分支**
-   ```bash
+## 🔧 开发环境设置
+
+### 1. Fork 项目
+
+点击项目页面右上角的 "Fork" 按钮，将项目 fork 到您的 GitHub 账户。
+
+### 2. 克隆代码
    git checkout -b feature/your-feature-name
    ```
 

@@ -120,22 +120,66 @@ class LoRATrainer:
     def prepare_datasets(self):
         """准备数据集"""
         data_config = self.config.get('data', {})
-        
+
         processor = DataProcessor(
             max_length=data_config.get('max_seq_length', 512)
         )
-        
+
         # 准备数据集
         dataset_name = data_config.get('dataset_name', 'belle')
-        custom_path = data_config.get('train_file')
-        
-        self.datasets = processor.prepare_dataset(
-            dataset_name=dataset_name,
-            custom_path=custom_path,
-            tokenizer=self.tokenizer,
-            train_split=0.9
-        )
-        
+        train_file = data_config.get('train_file')
+        validation_file = data_config.get('validation_file')
+
+        if dataset_name == "custom" and train_file:
+            # 使用自定义数据文件
+            logger.info(f"加载自定义训练数据: {train_file}")
+
+            # 加载训练集
+            train_dataset = processor.load_custom_data(train_file)
+            train_dataset = train_dataset.map(processor.format_instruction_data, num_proc=1)
+
+            # 如果有验证文件，加载验证集
+            if validation_file and os.path.exists(validation_file):
+                logger.info(f"加载验证数据: {validation_file}")
+                val_dataset = processor.load_custom_data(validation_file)
+                val_dataset = val_dataset.map(processor.format_instruction_data, num_proc=1)
+
+                self.datasets = {
+                    'train': train_dataset,
+                    'validation': val_dataset
+                }
+            else:
+                self.datasets = {'train': train_dataset}
+
+            # 分词
+            if self.tokenizer:
+                logger.info("正在对数据进行分词...")
+                for key in self.datasets:
+                    self.datasets[key] = self.datasets[key].map(
+                        lambda examples: processor.tokenize_function(examples, self.tokenizer),
+                        batched=True,
+                        num_proc=1
+                    )
+            # 分词后清理列，避免collator收到非tensor列
+            if self.tokenizer:
+                for key in self.datasets:
+                    ds_tok = self.datasets[key]
+                    keep_cols = [c for c in ["input_ids", "attention_mask", "labels"] if c in ds_tok.column_names]
+                    if keep_cols:
+                        drop_cols = [c for c in ds_tok.column_names if c not in keep_cols]
+                        if drop_cols:
+                            ds_tok = ds_tok.remove_columns(drop_cols)
+                    self.datasets[key] = ds_tok
+
+        else:
+            # 使用原有的数据集加载方式
+            self.datasets = processor.prepare_dataset(
+                dataset_name=dataset_name,
+                custom_path=train_file,
+                tokenizer=self.tokenizer,
+                train_split=0.9
+            )
+
         logger.info(f"数据集准备完成，训练集: {len(self.datasets['train'])}条")
         if 'validation' in self.datasets:
             logger.info(f"验证集: {len(self.datasets['validation'])}条")
@@ -156,7 +200,7 @@ class LoRATrainer:
             logging_steps=training_config.get('logging_steps', 100),
             save_steps=training_config.get('save_steps', 500),
             eval_steps=training_config.get('eval_steps', 500),
-            evaluation_strategy="steps" if 'validation' in self.datasets else "no",
+            eval_strategy="steps" if 'validation' in self.datasets else "no",
             save_strategy="steps",
             load_best_model_at_end=True if 'validation' in self.datasets else False,
             metric_for_best_model="eval_loss",
@@ -164,7 +208,7 @@ class LoRATrainer:
             bf16=training_config.get('bf16', True),
             fp16=training_config.get('fp16', False),
             dataloader_num_workers=training_config.get('dataloader_num_workers', 4),
-            remove_unused_columns=False,
+            remove_unused_columns=True,
             report_to=training_config.get('report_to', []),
             seed=training_config.get('seed', 42),
             data_seed=training_config.get('data_seed', 42),
