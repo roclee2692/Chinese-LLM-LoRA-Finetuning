@@ -368,7 +368,8 @@ class GradioDemo:
                     with gr.Column(scale=3):
                         chatbot = gr.Chatbot(
                             label="对话历史",
-                            height=400
+                            height=400,
+                            type="messages"
                         )
                         
                         with gr.Row():
@@ -504,10 +505,10 @@ class GradioDemo:
             def update_model_choices():
                 choices = self.get_model_list()
                 return (
-                    gr.Dropdown.update(choices=choices),
-                    gr.Dropdown.update(choices=choices),
-                    gr.Dropdown.update(choices=choices),
-                    gr.Dropdown.update(choices=choices)
+                    gr.Dropdown(choices=choices),
+                    gr.Dropdown(choices=choices),
+                    gr.Dropdown(choices=choices),
+                    gr.Dropdown(choices=choices)
                 )
             
             # 定期更新模型选择器
@@ -554,8 +555,8 @@ def main():
     demo = demo_app.create_interface()
     
     # 启动服务
-    print(f"🚀 启动Gradio演示界面...")
-    print(f"📍 地址: http://{args.host}:{args.port}")
+    print("启动Gradio演示界面...")
+    print(f"地址: http://{args.host}:{args.port}")
     
     demo.launch(
         server_name=args.host,
