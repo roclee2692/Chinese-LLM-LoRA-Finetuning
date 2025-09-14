@@ -25,11 +25,41 @@ def test_data_format():
     )
     
     try:
-        # 1. 测试Belle数据集的一小部分
-        print("\n📥 加载Belle数据集样本...")
-        dataset = load_dataset("BelleGroup/train_0.5M_CN", split="train[:50]")  # 只取50个样本测试
+        # 1. 创建本地测试数据
+        print("\n📥 创建本地测试数据...")
+        test_data = [
+            {
+                "instruction": "请介绍人工智能",
+                "input": "",
+                "output": "人工智能（AI）是计算机科学的一个分支，旨在创造能够执行通常需要人类智能才能完成的任务的机器。"
+            },
+            {
+                "instruction": "翻译以下英文",
+                "input": "Hello world",
+                "output": "你好世界"
+            },
+            {
+                "instruction": "解释什么是深度学习",
+                "input": "",
+                "output": "深度学习是机器学习的一个子领域，使用多层神经网络来学习数据的高级抽象。"
+            },
+            {
+                "instruction": "计算数学题",
+                "input": "2 + 3 = ?",
+                "output": "2 + 3 = 5"
+            },
+            {
+                "instruction": "写一首关于春天的诗",
+                "input": "",
+                "output": "春风吹绿江南岸，万物复苏展新颜。桃花朵朵迎朝阳，燕子归来报春还。"
+            }
+        ] * 10  # 重复10次以创建更多数据
         
-        print(f"✅ 成功加载{len(dataset)}个样本")
+        # 创建数据集
+        from datasets import Dataset
+        dataset = Dataset.from_list(test_data)
+        
+        print(f"✅ 成功创建{len(dataset)}个样本")
         
         # 2. 检查原始数据格式
         print("\n🔍 检查原始数据格式...")
@@ -88,11 +118,31 @@ def test_data_format():
         output_dir = Path("data/processed")
         output_dir.mkdir(parents=True, exist_ok=True)
         
+        # 保存训练和验证数据
+        if len(tokenized_dataset) >= 10:
+            # 分割数据：80%训练，20%验证
+            train_size = int(0.8 * len(tokenized_dataset))
+            train_data = tokenized_dataset.select(range(train_size))
+            val_data = tokenized_dataset.select(range(train_size, len(tokenized_dataset)))
+            
+            # 保存为JSONL格式
+            train_data.to_json(output_dir / "train.jsonl")
+            val_data.to_json(output_dir / "val.jsonl")
+            
+            print(f"\n💾 已保存训练数据: {len(train_data)}个样本 -> {output_dir / 'train.jsonl'}")
+            print(f"💾 已保存验证数据: {len(val_data)}个样本 -> {output_dir / 'val.jsonl'}")
+        else:
+            # 如果数据太少，全部用作训练数据
+            tokenized_dataset.to_json(output_dir / "train.jsonl")
+            tokenized_dataset.to_json(output_dir / "val.jsonl")  # 复制一份作为验证数据
+            
+            print(f"\n💾 数据较少，全部用作训练: {len(tokenized_dataset)}个样本")
+        
         # 保存少量样本用于测试
         test_data = tokenized_dataset.select(range(min(20, len(tokenized_dataset))))
         test_data.save_to_disk(output_dir / "test_data")
         
-        print(f"\n💾 已保存修复后的测试数据到: {output_dir / 'test_data'}")
+        print(f"💾 已保存测试数据到: {output_dir / 'test_data'}")
         
         print("\n🎉 数据格式修复完成！")
         print("📋 修复总结:")
@@ -100,6 +150,10 @@ def test_data_format():
         print(f"  - 格式化后: {len(formatted_dataset)}")
         print(f"  - 长度过滤后: {len(filtered_dataset)}")
         print(f"  - 分词后: {len(tokenized_dataset)}")
+        if len(tokenized_dataset) >= 10:
+            train_size = int(0.8 * len(tokenized_dataset))
+            print(f"  - 训练数据: {train_size}")
+            print(f"  - 验证数据: {len(tokenized_dataset) - train_size}")
         print(f"  - 测试数据: {len(test_data)}")
         
         return True
