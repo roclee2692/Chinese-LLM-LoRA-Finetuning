@@ -1,14 +1,14 @@
 # 生产级LoRA训练配置 - 为8GB GPU优化
 model:
-  model_name: "THUDM/chatglm3-6b"
-  model_type: "chatglm3"
+  model_name: "Qwen/Qwen-1_8B-Chat"
+  model_type: "qwen"
   trust_remote_code: true
   cache_dir: "./cache"
 
 lora:
   r: 16  # LoRA rank，平衡性能和质量
   lora_alpha: 32  # 2 * r 的常见设置
-  target_modules: ["query_key_value", "dense", "dense_h_to_4h", "dense_4h_to_h"]
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
   lora_dropout: 0.1
   bias: "none"
 
@@ -16,7 +16,7 @@ quantization:
   load_in_4bit: true  # 4bit量化节省显存
 
 training:
-  output_dir: "./results/chatglm3-lora-belle"
+  output_dir: "./results/qwen-1.8b-lora-belle"
   num_train_epochs: 3  # 3个epoch通常足够
   per_device_train_batch_size: 1  # 小batch size适合8GB显存
   per_device_eval_batch_size: 1
@@ -40,8 +40,8 @@ training:
 
 data:
   dataset_name: "custom"
-  train_file: "./data/processed/train_belle.jsonl"
-  validation_file: "./data/processed/val_belle.jsonl"
+  train_file: "./data/processed/train.json"
+  validation_file: "./data/processed/val.json"
   max_seq_length: 512
 
 wandb:
