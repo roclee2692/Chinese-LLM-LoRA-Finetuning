@@ -208,3 +208,11 @@ llm-lora/
 NUL
 .DS_Store
 Thumbs.db
+# Model files
+*.bin
+*.safetensors
+*.pt
+*.pth
+cache/
+results/models/
+data/processed/
